@@ -1,10 +1,15 @@
-# Eisago
+# Eisago, ClojureDocs 2.0 API and Website
 
 Next-gen clojuredocs importer, API, and (eventually) website.
 
+## Project Status
+
+This project is a **work in progress**. If you are interested in
+helping out, join `#clojure-doc` on `irc.freenode.net`.
+
 ## Getting started
 
-Eisago uses [ElasticSearch](http://elasticsearch.org) as the database.
+The app uses [ElasticSearch](http://elasticsearch.org) as the database.
 First download the latest ElasticSearch release from the
 [downloads](http://www.elasticsearch.org/download/) page.
 
