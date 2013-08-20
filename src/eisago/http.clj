@@ -5,24 +5,41 @@
             [laeggen.core :as laeggen]
             [laeggen.dispatch :as dispatch]))
 
-(def api-urls
-  (dispatch/urls
+(def doc-routes
    [#"^/v1/doc/([^/]+)/?$"
-    #"^/v1/doc/([^/]+)/([^/]+)/([^/]+)/?$"]
-   #'api/doc-for
+    #"^/v1/doc/([^/]+)/([^/]+)/([^/]+)/?$"])
 
+(def children-routes
    [#"^/v1/meta/([^/]+)/?$"
-    #"^/v1/meta/([^/]+)/([^/]+)/([^/]+)/?$"]
-   #'api/children-for
+    #"^/v1/meta/([^/]+)/([^/]+)/([^/]+)/?$"])
 
+(def search-routes
    [#"^/v1/([^/]+)/([^/]+)/_search/?$"
     #"^/v1/([^/]+)/_search/?$"
-    #"^/v1/_search/?$"]
+    #"^/v1/_search/?$"])
+
+(def all-projects-route #"^/v1/_projects/?")
+
+(def stats-route #"^/v1/_stats/?$" 
+  )
+
+(def api-urls
+  (dispatch/urls
+
+   doc-routes
+   #'api/doc-for
+
+   children-routes
+   #'api/children-for
+
+   search-routes
    #'api/search
 
-   #"^/v1/_projects/?" #'api/all-projects
+   all-projects-route
+   #'api/all-projects
 
-   #"^/v1/_stats/?$" #'api/stats
+   stats-route
+   #'api/stats
 
    :404 #'api/missing
    :500 #'api/error))
