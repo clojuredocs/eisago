@@ -12,10 +12,12 @@
 
 (defn return-args [& args] args)
 
+(def config-stub {:es-url "http://localhost:9200" :es-http-opts "options"})
+
 (describe "Creating an index"
           (let [result (with-redefs [http/post return-args
                                      mapping   (fn [& args] "mapping")
-                                     config    (fn [& args] {})]
+                                     config    (fn [& args] config-stub)]
                          (create-index "mock-index"))]
 
             (it "should POST to elasticsearch to create an index"
@@ -29,13 +31,13 @@
 
 (describe "Deleting an index"
           (let [result (with-redefs [http/delete return-args
-                                     config      (fn [& args] {:es-http-opts "options"})]
+                                     config      (fn [& args] config-stub)]
                          (delete-index "mock-index"))]
 
             (it "should DELETE the index from elasticsearch"
                 (should= "http://localhost:9200/mock-index" (first result)))
             (it "should include the default HTTP options"
-                (should= {:es-http-opts "options"} (second result)))))
+                (should= config-stub (second result)))))
 
 (describe "Checking for an index"
           (let [index-exists (with-redefs [http/head (fn [& args] {:status 200})]
