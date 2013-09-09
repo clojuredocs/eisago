@@ -1,6 +1,6 @@
 (ns eisago.api-spec
   (:require [speclj.core :refer :all]
-            [eisago.api :refer :all]
+            [eisago.api.json :refer :all]
             [eisago.es :as es]
             [cheshire.core :as json]))
 
