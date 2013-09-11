@@ -268,8 +268,10 @@
         q-map {:query {:bool (merge (when q
                                       {:should
                                        [{:query_string
-                                         {:query (QueryParserBase/escape q)}}]})
-                                    (when (seq must) {:must must}))}}
+                                         {:query (QueryParserBase/escape q)}}
+                                        {:fuzzy {:name {:value (QueryParserBase/escape q) :boost 2.0}}}]})
+                                    (when (seq must) {:must must}))}
+               :from 0 :size 50}
         q-str (json/encode q-map)
         results (-> (http/post (str (config :es-url) "/"
                                     (config :es-index) "/var/_search")
