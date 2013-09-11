@@ -103,7 +103,7 @@
   [m]
   (let [data (update-in m [:namespaces] (fn [nses] (mapv name (keys nses))))
         data (update-in data [:license] (constantly (-> m :license :name)))]
-    (assoc data :id (md5 (str (:group data) "." (:name data))))))
+    (assoc data :id (md5 (str (:group data) "." (:name data) "-" (:version data))))))
 
 (defn index-project
   "Given the metadata clojure map, generate and index the project
@@ -117,8 +117,8 @@
 
 (defn id-of
   "Return the ID for a the var given the project, namespace and var name."
-  [project ns varname]
-  (md5 (str project ":" (name ns) "." varname)))
+  [project version ns varname]
+  (md5 (str project "-" version ":" (name ns) "." varname)))
 
 (defn var-doc
   "Create a single var document for ES."
@@ -128,7 +128,7 @@
   ;; will be updated at that time too). It also needs to remain
   ;; constant so that the child docs (examples and comments) still
   ;; point to the same place and can be found with the same query.
-  {:id (id-of (:name project) ns (:name var))
+  {:id (id-of (:name project) (:version project) ns (:name var))
    :project (str (:group project) "/" (:name project))
    :name (:name var)
    :ns (name ns)
@@ -175,8 +175,8 @@
 (defn child-for
   "Generic method to retrieve the children for either an id, or a particular
   type,project, namespace and var name."
-  ([type project ns varname]
-     (child-for type (id-of project ns varname)))
+  ([type project version ns varname]
+     (child-for type (id-of project version ns varname)))
   ([type id]
      (let [fields "id,body,parent-id,index-date,type"
            q-str (json/encode {:query
@@ -236,8 +236,8 @@
 (defn meta-for
   "Return the var metadata and children for either an id, or a given
   project, namespace and var name."
-  ([project ns varname]
-     (meta-for (id-of project ns varname)))
+  ([project version ns varname]
+     (meta-for (id-of project version ns varname)))
   ([id]
      (let [fields (str "id,project,name,ns,arglists,library,lib-version,"
                        "line,file,doc,index-date,source")
@@ -259,7 +259,7 @@
 (defn search
   "Return a seq of all docs for the given query, lib and ns are optional."
   [{:keys [q lib ns name]}]
-  (let [fields "id,project,name,ns,arglists,library"
+  (let [fields "id,project,name,ns,arglists,library,doc,lib-version"
         must (concat nil (when lib
                            [{:term {:library lib}}]))
         must (concat must (when ns [{:term {:ns ns}}]))
@@ -268,8 +268,10 @@
         q-map {:query {:bool (merge (when q
                                       {:should
                                        [{:query_string
-                                         {:query (QueryParserBase/escape q)}}]})
-                                    (when (seq must) {:must must}))}}
+                                         {:query (QueryParserBase/escape q)}}
+                                        {:fuzzy {:name {:value (QueryParserBase/escape q) :boost 2.0}}}]})
+                                    (when (seq must) {:must must}))}
+               :from 0 :size 50}
         q-str (json/encode q-map)
         results (-> (http/post (str (config :es-url) "/"
                                     (config :es-index) "/var/_search")
