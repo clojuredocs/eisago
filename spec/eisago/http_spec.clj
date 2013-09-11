@@ -1,7 +1,7 @@
 (ns eisago.http-spec
   (:require [speclj.core :refer :all]
             [eisago.http :refer :all]
-            [eisago.api :as api]))
+            [eisago.api.json :as api]))
 
 (defn match-one? [regexes strings]
   (not (every? false?
